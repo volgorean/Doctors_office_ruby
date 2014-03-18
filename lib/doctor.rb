@@ -1,30 +1,29 @@
 require 'pg'
 
 class Doctor
-  attr_reader(:name, :specialty, :insurance, :doctors, :id)
+  attr_reader(:name, :specialty_id, :insurance_id, :id)
 
   def initialize(attributes)
-    @name = attributes[:name]
-    @specialty = attributes[:specialty] || 000
-    @insurance = attributes[:insurance] || 000
-    @id = attributes[:id] || 000
-    @doctors = []
+    @name = attributes['name']
+    @specialty_id = attributes['specialty_id']
+    @insurance_id = attributes['insurance_id']
+    @id = attributes["id"].to_i || 000
   end
 
-  def change_insurance(new_insurance)
-    @insurance = new_insurance
+  def change_insurance_id(new_insurance_id)
+    @insurance_id = new_insurance_id
   end
 
-  def change_specialty(new_specialty)
-    @specialty = new_specialty
+  def change_specialty_id(new_specialty_id)
+    @specialty_id = new_specialty_id
   end
 
   def ==(another_doctor)
-    self.name == another_doctor.name && self.specialty == another_doctor.specialty && self.insurance == another_doctor.insurance && self.id == another_doctor.id
+    self.name == another_doctor.name && self.specialty_id == another_doctor.specialty_id && self.insurance_id == another_doctor.insurance_id && self.id == another_doctor.id
   end
 
   def save
-    results = DB.exec("INSERT INTO doctors (name, specialty_id, insurance_id) VALUES ('#{@name}', #{@specialty}, #{@insurance}) RETURNING id;")
+    results = DB.exec("INSERT INTO doctors (name, specialty_id, insurance_id) VALUES ('#{@name}', #{@specialty_id}, #{@insurance_id}) RETURNING id;")
     @id = results.first['id'].to_i
   end
 
@@ -32,11 +31,7 @@ class Doctor
     results = DB.exec("SELECT * FROM doctors;")
     doctors = []
     results.each do |doctor|
-      name = doctor['name']
-      specialty_id = doctor['specialty_id'].to_i
-      insurance_id = doctor['insurance_id'].to_i
-      id = doctor['id'].to_i
-      doctors << Doctor.new({:name => name, :insurance => insurance_id, :specialty => specialty_id, :id => id})
+      doctors << Doctor.new(doctor)
     end
     doctors
   end

@@ -69,7 +69,7 @@ def view_patients
   system('clear')
   puts "PATIENTS:"
   Patient.all.each_with_index do |patient, index|
-    puts "#{index + 1}. #{patient.name}"
+    puts "#{index + 1}. #{patient.name} - Birthdate: #{patient.birthdate[0..9]} - Insurance: #{search_insurance_by_number(patient.insurance_id)} - Doctor: #{search_doctor_by_number(patient.doctor_id)}"
   end
   puts "'A' - Add a patient"
   puts "'M' - Main menu"
@@ -90,14 +90,24 @@ def add_patient
   system('clear')
   puts "Type your patient's name"
   patient_name = gets.chomp.capitalize
-  puts "what is #{patient_name}'s birthday"
-  patient_birthday = gets.chomp
+  puts "what is #{patient_name}'s birthday (in format YYYY-MM-DD)"
+  patient_birthdate = gets.chomp
   puts "Type your patient's insurance"
-  patient_insurance = gets.chomp
-  patient_birthday = 0 #NEED TO ADD FUNCTIONALITY
-  patient_insurance = 0
-  new_patient = Patient.new({"name" => patient_name, "birthday" => patient_birthday, "insurance" => patient_insurance})
-  new_patient.save
+  insurance_id = search_insurance_by_name(gets.chomp)
+  puts "DOCTORS:"
+  Doctor.all.each_with_index do |doctor, index|
+    puts "#(ID #{doctor.id}) #{doctor.name} - Specialises in: #{search_specialty_by_number(doctor.specialty_id)} - Insurance Accepted: #{search_insurance_by_number(doctor.insurance_id)}"
+  end
+  puts "Please select the number of your doctor."
+  doctor_id = gets.chomp.to_i
+  begin
+    new_patient = Patient.new({"name" => patient_name, "birthdate" => patient_birthdate, "doctor_id" => doctor_id, "insurance_id" => insurance_id})
+    new_patient.save
+  rescue
+    puts "Invalid entry, check your spelling and try again"
+    sleep(2)
+    add_patient
+  end
   puts "\nPatient #{new_patient.name} has been added."
   sleep(1)
   view_patients
@@ -105,10 +115,11 @@ end
 
 def search_insurance_by_name(name)
   insurance_id = 4
-  if DB.exec("SELECT * FROM insurance;").include?(name)
+  begin
     insurance_id = DB.exec("SELECT * FROM insurance WHERE name = ('#{name}');")[0]["id"]
+  rescue
+    insurance_id
   end
-  insurance_id
 end
 
 def search_insurance_by_number(number)
@@ -121,10 +132,11 @@ end
 
 def search_specialty_by_name(name)
   specialty_id = 3
-  if DB.exec("SELECT * FROM specialties;").include?(name)
+  begin
     specialty_id = DB.exec("SELECT * FROM specialties WHERE name = ('#{name}');")[0]["id"]
+  rescue
+    specialty_id
   end
-  specialty_id
 end
 
 def search_specialty_by_number(number)
@@ -133,6 +145,14 @@ def search_specialty_by_number(number)
     specialty_name = DB.exec("SELECT * FROM specialties WHERE id = ('#{number.to_i}');")[0]["name"]
   end
   specialty_name
+end
+
+def search_doctor_by_number(number)
+  doctor_name = "Not assigned"
+  if number.to_i > 0
+    doctor_name = DB.exec("SELECT * FROM doctors WHERE id = ('#{number.to_i}');")[0]["name"]
+  end
+  doctor_name
 end
 
 main_menu

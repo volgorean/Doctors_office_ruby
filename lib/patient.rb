@@ -3,7 +3,7 @@ class Patient
 
   def initialize(attributes)
     @name = attributes['name']
-    @birthdate = attributes["birthdate"] || '1900-01-01 00:00:00'
+    @birthdate = attributes["birthdate"] # || '1900-01-01 00:00:00'
     @doctor_id = attributes["doctor_id"].to_i || 000
     @insurance_id = attributes["insurance_id"].to_i || 000
     @id = attributes["id"].to_i || 000
